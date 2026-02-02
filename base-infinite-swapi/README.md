@@ -1,8 +1,16 @@
-# React + Vite
+### Problem with using ReactQuery and React InfiniteScroll
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+*** The symptom ***
+Page 2 loads twice on load. 
 
-Currently, two official plugins are available:
+*** The explanation ***
+The <InfiniteScroll> component automatically loads what it THINKS is the first page (the value of ReactQuery's loadMore function)
+However, the actual first page gets loaded via useQuery and the first result of loadMore is the second page.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+*** The solution ***
+We can eliminate the duplicate page 2 fetch by settings the <InfiniteScroll>'s initialLoad prop to false
+
+
+### A note on Bi-directional Scrolling
+- Bi-directional is useful when starting in the middle
+- All *next* methods and properties have equivalent for *previous*
