@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import type { Staff } from '@shared/types';
 
@@ -20,9 +20,19 @@ export function useStaff() {
     // for filtering staff by treatment
     const [filter, setFilter] = useState('all');
 
+    const selectFn = useCallback(
+        // take only one argument, data, so the function can be passed by reference as the useQuery 'select' value
+        (data: Staff[]) => {
+            if (filter == 'all') return data;
+            return filterByTreatment(data, filter);
+        },
+        [filter],
+    );
+
     const { data: staff = fallback } = useQuery({
         queryKey: [queryKeys.staff],
         queryFn: getStaff,
+        select: selectFn, // note, the function here is memoized in the definition of selectFn, not if was an anonymous fuction (...) => {...}
     });
 
     return { staff, filter, setFilter };

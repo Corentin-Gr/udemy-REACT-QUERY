@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { AppointmentDateMap } from '../types';
 import { getAvailableAppointments } from '../utils';
@@ -9,6 +9,12 @@ import { useLoginData } from '@/auth/AuthContext';
 import { axiosInstance } from '@/axiosInstance';
 import { queryKeys } from '@/react-query/constants';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+// for useQuery and prefetchQuery
+const commonOptions = {
+    staleTime: 0,
+    gcTime: 300000, // 5 minutes
+};
 
 // for useQuery call
 async function getAppointments(
@@ -51,6 +57,15 @@ export function useAppointments() {
     //   appointments that the logged-in user has reserved (in white)
     const { userId } = useLoginData();
 
+    const selectFn = useCallback(
+        // take only one argument, data, so the function can be passed by reference as the useQuery 'select' value
+        (data: AppointmentDateMap) => {
+            if (showAll) return data;
+            return getAvailableAppointments(data, userId);
+        },
+        [userId],
+    );
+
     /** ****************** END 2: filter appointments  ******************** */
     /** ****************** START 3: useQuery  ***************************** */
     // useQuery call for appointments for the current monthYear
@@ -67,8 +82,9 @@ export function useAppointments() {
             ],
             queryFn: () =>
                 getAppointments(nextMonthYear.year, nextMonthYear.month),
+            ...commonOptions,
         });
-    }, [queryClient, monthYear]);
+    }, [queryClient, monthYear, commonOptions]);
 
     // Notes:
     //    1. appointments is an AppointmentDateMap (object with days of month
@@ -79,8 +95,12 @@ export function useAppointments() {
     const fallback: AppointmentDateMap = {};
 
     const { data: appointments = fallback } = useQuery({
-        queryKey: [queryKeys.appointments, monthYear],
+        queryKey: [queryKeys.appointments, monthYear.year, monthYear.month],
         queryFn: () => getAppointments(monthYear.year, monthYear.month),
+        select: selectFn, // note, the function here is memoized in the definition of selectFn, not if was an anonymous fuction (...) => {...}
+        refetchOnWindowFocus: true,
+        refetchInterval: 60000, // every minute;
+        ...commonOptions,
     });
 
     /** ****************** END 3: useQuery  ******************************* */
