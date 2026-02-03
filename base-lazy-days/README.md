@@ -19,3 +19,6 @@
 - on component render
 - on page update (useEffect)
 - use keys as dependency arrays
+
+
+### setQueryData on signin, removeQueries on signout
