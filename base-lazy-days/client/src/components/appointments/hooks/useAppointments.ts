@@ -63,7 +63,7 @@ export function useAppointments() {
             if (showAll) return data;
             return getAvailableAppointments(data, userId);
         },
-        [userId],
+        [userId, showAll],
     );
 
     /** ****************** END 2: filter appointments  ******************** */
@@ -84,7 +84,7 @@ export function useAppointments() {
                 getAppointments(nextMonthYear.year, nextMonthYear.month),
             ...commonOptions,
         });
-    }, [queryClient, monthYear, commonOptions]);
+    }, [queryClient, monthYear]);
 
     // Notes:
     //    1. appointments is an AppointmentDateMap (object with days of month
